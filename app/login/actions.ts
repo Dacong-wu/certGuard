@@ -1,18 +1,15 @@
-"use server"
+'use server'
 
-import { generateVerificationCode } from "@/app/lib/server-auth"
-import { sendEmail } from "@/lib/utils"
-import { db } from '@/lib/db'
+import { generateVerificationCode } from '@/app/lib/server-auth'
+import { sendEmail } from '@/lib/utils'
+import db from '@/lib/db'
 import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 
 export async function requestVerificationCode(email: string) {
   // 验证邮箱是否在允许列表中
-  const allowedEmails = process.env.ALLOWED_EMAILS?.split(',').map(e => e.trim()) || []
-  
-  console.log('Allowed emails:', allowedEmails)
-  console.log('Current email:', email)
-  
+  const allowedEmails =
+    process.env.ALLOWED_EMAILS?.split(',').map(e => e.trim()) || []
+
   // 如果设置了允许的邮箱列表，但当前邮箱不在列表中
   if (allowedEmails.length > 0 && !allowedEmails.includes(email)) {
     console.log('Email not in allowed list')
@@ -27,9 +24,9 @@ export async function requestVerificationCode(email: string) {
     const code = await generateVerificationCode(email)
 
     // 发送验证码邮件
-    await sendEmail(email, "证书监控系统登录验证码", `${code}`)
+    await sendEmail(email, '证书监控系统登录验证码', `${code}`)
 
-    return { 
+    return {
       success: true,
       message: `验证码已发送至 ${email}，请查收邮件。`
     }
@@ -44,13 +41,12 @@ export async function requestVerificationCode(email: string) {
 
 export async function login(email: string, password: string) {
   try {
-    const user = await db.user.findUnique({
-      where: {
-        email,
-        password // 注意：实际应用中应该使用加密后的密码进行比较
-      }
-    })
-
+    const stmt = db.prepare(
+      'SELECT * FROM users WHERE email = ? AND password = ?'
+    )
+    const user = stmt.get(email, password) as
+      | { id: number; email: string }
+      | undefined
     if (!user) {
       return {
         success: false,
@@ -59,7 +55,8 @@ export async function login(email: string, password: string) {
     }
 
     // 设置用户会话
-    cookies().set('userId', user.id.toString(), {
+    const cookieStore = await cookies()
+    cookieStore.set('userId', user.id.toString(), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
@@ -82,3 +79,7 @@ export async function login(email: string, password: string) {
   }
 }
 
+export async function logout(userId: string) {
+  const cookieStore = await cookies()
+  cookieStore.delete(userId)
+}

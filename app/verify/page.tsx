@@ -1,21 +1,22 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { verifyCode, requestNewCode } from "./actions"
+import { useState, useEffect } from 'react'
+import { Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { verifyCode, requestNewCode } from './actions'
 
-export default function VerifyPage() {
+function VerifyPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const email = searchParams.get("email") || ""
+  const email = searchParams.get('email') || ''
 
-  const [code, setCode] = useState("")
+  const [code, setCode] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isResending, setIsResending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -24,7 +25,7 @@ export default function VerifyPage() {
 
   useEffect(() => {
     if (!email) {
-      router.push("/login")
+      router.push('/login')
     }
 
     let timer: NodeJS.Timeout
@@ -41,7 +42,7 @@ export default function VerifyPage() {
 
   async function handleVerify() {
     if (!code || code.length !== 6) {
-      setError("请输入6位验证码")
+      setError('请输入6位验证码')
       return
     }
 
@@ -54,12 +55,12 @@ export default function VerifyPage() {
       if (result.success) {
         localStorage.setItem('userId', result.userId.toString())
         localStorage.setItem('email', result.email || '')
-        router.push("/")
+        router.push('/')
       } else {
-        setError("验证码无效或已过期")
+        setError('验证码无效或已过期')
       }
     } catch (err) {
-      setError("验证失败，请稍后重试")
+      setError('验证失败，请稍后重试')
       console.error(err)
     } finally {
       setIsLoading(false)
@@ -75,7 +76,7 @@ export default function VerifyPage() {
       setCountdown(60)
       setCanResend(false)
     } catch (err) {
-      setError("重新发送验证码失败")
+      setError('重新发送验证码失败')
       console.error(err)
     } finally {
       setIsResending(false)
@@ -102,21 +103,30 @@ export default function VerifyPage() {
               id="code"
               placeholder="6位数字验证码"
               value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               disabled={isLoading}
               maxLength={6}
             />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
-          <Button className="w-full" onClick={handleVerify} disabled={isLoading || code.length !== 6}>
+          <Button
+            className="w-full"
+            onClick={handleVerify}
+            disabled={isLoading || code.length !== 6}
+          >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isLoading ? "验证中..." : "验证"}
+            {isLoading ? '验证中...' : '验证'}
           </Button>
 
-          <Button variant="ghost" className="w-full" onClick={handleResendCode} disabled={isResending || !canResend}>
+          <Button
+            variant="ghost"
+            className="w-full"
+            onClick={handleResendCode}
+            disabled={isResending || !canResend}
+          >
             {isResending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isResending ? "发送中..." : canResend ? "重新发送验证码" : `${countdown}秒后可重新发送`}
+            {isResending ? '发送中...' : canResend ? '重新发送验证码' : `${countdown}秒后可重新发送`}
           </Button>
         </CardFooter>
       </Card>
@@ -124,3 +134,11 @@ export default function VerifyPage() {
   )
 }
 
+// Wrap the component with a Suspense boundary
+export default function SuspenseVerifyPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <VerifyPage />
+    </Suspense>
+  )
+}

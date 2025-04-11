@@ -3,8 +3,8 @@ import { sendMail } from '@/lib/email-config'
 
 export async function POST(request: Request) {
   try {
-    const { to, subject, content, isVerificationCode } = await request.json()
-    const result = await sendMail(to, subject, content, isVerificationCode)
+    const { to, subject, content } = await request.json()
+    const result = await sendMail(to, subject, content)
 
     if (!result.success) {
       return NextResponse.json(
@@ -21,4 +21,4 @@ export async function POST(request: Request) {
       { status: 500 }
     )
   }
-} 
+}

@@ -12,7 +12,7 @@ import {
   getNotificationSettings,
   updateNotificationSettings
 } from '@/app/domains/actions'
-import { useToast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 
 type NotificationSettingsProps = {
   userId: number
@@ -28,7 +28,6 @@ export function NotificationSettings({
   const [isTesting, setIsTesting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const { toast } = useToast()
 
   const [emailEnabled, setEmailEnabled] = useState(false)
   const [warningDays, setWarningDays] = useState('30')
@@ -104,10 +103,8 @@ export function NotificationSettings({
   // 发送测试邮件
   async function handleTestEmail() {
     if (!emailEnabled) {
-      toast({
-        title: '邮件通知未启用',
-        description: '请先启用邮件通知功能',
-        variant: 'destructive'
+      toast.warning('邮件通知未启用', {
+        description: '请先启用邮件通知功能'
       })
       return
     }
@@ -127,23 +124,18 @@ export function NotificationSettings({
       const result = await response.json()
 
       if (result.success) {
-        toast({
-          title: '测试邮件已发送',
+        toast.success('测试邮件已发送', {
           description: '请检查您的邮箱'
         })
       } else {
-        toast({
-          title: '发送测试邮件失败',
-          description: result.error || '请稍后重试',
-          variant: 'destructive'
+        toast.error('发送测试邮件失败', {
+          description: result.error || '请稍后重试'
         })
       }
     } catch (err) {
       console.error('发送测试邮件失败:', err)
-      toast({
-        title: '发送测试邮件失败',
-        description: '请稍后重试',
-        variant: 'destructive'
+      toast.error('发送测试邮件失败', {
+        description: '请稍后重试'
       })
     } finally {
       setIsTesting(false)

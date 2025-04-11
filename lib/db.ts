@@ -1,14 +1,14 @@
-import Database from "better-sqlite3"
-import fs from "fs"
-import path from "path"
+import Database from 'better-sqlite3'
+import fs from 'fs'
+import path from 'path'
 
 // 确保数据库目录存在
-const dbDir = path.join(process.cwd(), "db")
+const dbDir = path.join(process.cwd(), 'db')
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true })
 }
 
-const dbPath = path.join(dbDir, "certificate-monitor.db")
+const dbPath = path.join(dbDir, 'certificate-monitor.db')
 const db = new Database(dbPath)
 
 // 初始化数据库表
@@ -67,4 +67,3 @@ function initDb() {
 initDb()
 
 export default db
-

@@ -1,14 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { addDomain, addDomainsBulk } from '../actions'
@@ -43,7 +49,12 @@ export function AddDomainForm({ userId }: AddDomainFormProps) {
     setError(null)
 
     try {
-      const result = await addDomain(userId, domain, Number.parseInt(port, 10), notes)
+      const result = await addDomain(
+        userId,
+        domain,
+        Number.parseInt(port, 10),
+        notes
+      )
 
       if (result.success) {
         setSuccess('域名添加成功')
@@ -78,7 +89,11 @@ export function AddDomainForm({ userId }: AddDomainFormProps) {
       const result = await addDomainsBulk(userId, domains)
 
       if (result.success) {
-        setSuccess(`成功添加 ${result.added} 个域名${result.failed > 0 ? `，${result.failed} 个域名添加失败` : ''}`)
+        setSuccess(
+          `成功添加 ${result.added} 个域名${
+            result.failed > 0 ? `，${result.failed} 个域名添加失败` : ''
+          }`
+        )
         // 清空表单
         setDomains('')
         // 延迟跳转
@@ -108,7 +123,9 @@ export function AddDomainForm({ userId }: AddDomainFormProps) {
       } else {
         const invalidDomains = domainList.filter(d => {
           const parts = d.includes(':') ? d.split(':')[0].trim() : d.trim()
-          return !parts.match(/^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/)
+          return !parts.match(
+            /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/
+          )
         })
 
         if (invalidDomains.length > 0) {
@@ -176,7 +193,9 @@ export function AddDomainForm({ userId }: AddDomainFormProps) {
             <Card>
               <CardHeader>
                 <CardTitle>添加单个域名</CardTitle>
-                <CardDescription>输入要监控的域名，系统将自动检查其SSL证书状态</CardDescription>
+                <CardDescription>
+                  输入要监控的域名，系统将自动检查其SSL证书状态
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-2">
@@ -188,7 +207,9 @@ export function AddDomainForm({ userId }: AddDomainFormProps) {
                     onChange={e => setDomain(e.target.value)}
                     disabled={isLoading}
                   />
-                  <p className="text-xs text-muted-foreground">无需添加 https:// 或 http:// 前缀</p>
+                  <p className="text-xs text-muted-foreground">
+                    无需添加 https:// 或 http:// 前缀
+                  </p>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="port">端口</Label>
@@ -200,7 +221,9 @@ export function AddDomainForm({ userId }: AddDomainFormProps) {
                     type="number"
                     disabled={isLoading}
                   />
-                  <p className="text-xs text-muted-foreground">默认为 443 端口</p>
+                  <p className="text-xs text-muted-foreground">
+                    默认为 443 端口
+                  </p>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="notes">备注 (可选)</Label>
@@ -219,7 +242,9 @@ export function AddDomainForm({ userId }: AddDomainFormProps) {
                   onClick={handleAddDomain}
                   disabled={isLoading || !domain}
                 >
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   {isLoading ? '添加中...' : '添加域名'}
                 </Button>
               </CardFooter>
@@ -230,7 +255,9 @@ export function AddDomainForm({ userId }: AddDomainFormProps) {
             <Card>
               <CardHeader>
                 <CardTitle>批量添加域名</CardTitle>
-                <CardDescription>每行输入一个域名，系统将批量检查这些域名的SSL证书状态</CardDescription>
+                <CardDescription>
+                  每行输入一个域名，系统将批量检查这些域名的SSL证书状态
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-2">
@@ -243,12 +270,16 @@ export function AddDomainForm({ userId }: AddDomainFormProps) {
                     onChange={e => setDomains(e.target.value)}
                     disabled={isLoading || isChecking}
                   />
-                  <p className="text-xs text-muted-foreground">每行一个域名，可选添加端口号（格式：域名:端口），不指定端口时默认为443</p>
+                  <p className="text-xs text-muted-foreground">
+                    每行一个域名，可选添加端口号（格式：域名:端口），不指定端口时默认为443
+                  </p>
                 </div>
 
                 <Alert>
                   <AlertTitle>提示</AlertTitle>
-                  <AlertDescription>批量添加前，建议先点击"检查域名"按钮验证域名格式是否正确</AlertDescription>
+                  <AlertDescription>
+                    批量添加前，建议先点击&quot;检查域名&quot;按钮验证域名格式是否正确
+                  </AlertDescription>
                 </Alert>
               </CardContent>
               <CardFooter className="flex justify-between">
@@ -257,14 +288,18 @@ export function AddDomainForm({ userId }: AddDomainFormProps) {
                   onClick={handleCheck}
                   disabled={isChecking || isLoading || !domains.trim()}
                 >
-                  {isChecking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isChecking && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   {isChecking ? '检查中...' : '检查域名'}
                 </Button>
                 <Button
                   onClick={handleAddDomainsBulk}
                   disabled={isLoading || !domains.trim()}
                 >
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   {isLoading ? '添加中...' : '批量添加'}
                 </Button>
               </CardFooter>
@@ -274,4 +309,4 @@ export function AddDomainForm({ userId }: AddDomainFormProps) {
       </div>
     </div>
   )
-} 
+}

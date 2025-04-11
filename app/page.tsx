@@ -15,8 +15,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DomainTable } from '@/components/domain-table'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { NotificationSettings } from '@/components/notification-settings'
-import { getDomains, getDomainStats, checkUserData } from './domains/actions'
-import { Domain } from '@/types'
+import { getDomains, getDomainStats } from './domains/actions'
+import type { DomainInfo } from '@/types'
 
 interface DomainStats {
   total: number
@@ -28,7 +28,7 @@ interface DomainStats {
 export default function DashboardPage() {
   const [userId, setUserId] = useState<number | null>(null)
   const [userEmail, setUserEmail] = useState<string>('')
-  const [domains, setDomains] = useState<Domain[]>([])
+  const [domains, setDomains] = useState<DomainInfo[]>([])
   const [stats, setStats] = useState<DomainStats | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()

@@ -1,36 +1,35 @@
 'use client'
-
+import type { DomainInfo } from '@/types'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { getDomainById, updateDomain } from '../../actions'
-import React from 'react'
+import { use } from 'react'
 
-interface DomainInfo {
-  id: number
-  domain: string
-  port: number
-  last_checked: string
-  expiry_date: string
-  status: string
-  daysLeft: number
-  notes: string
-}
-
-export default function EditDomainPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditDomainPage({
+  params
+}: {
+  params: Promise<{ id: string }>
+}) {
   const router = useRouter()
   const [domain, setDomain] = useState<DomainInfo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const resolvedParams = React.use(params)
+  const resolvedParams = use(params)
 
   // 表单状态
   const [port, setPort] = useState('')
@@ -104,7 +103,9 @@ export default function EditDomainPage({ params }: { params: Promise<{ id: strin
             onClick={() => {
               router.back()
               setTimeout(() => {
-                if (window.location.pathname === `/domains/${domain?.id}/edit`) {
+                if (
+                  window.location.pathname === `/domains/${domain?.id}/edit`
+                ) {
                   router.push('/?tab=domains')
                 }
               }, 100)
@@ -117,7 +118,9 @@ export default function EditDomainPage({ params }: { params: Promise<{ id: strin
         </div>
         <div className="text-center py-8">
           <p className="text-red-500 mb-4">{error}</p>
-          <Button onClick={() => router.push('/?tab=domains')}>返回域名列表</Button>
+          <Button onClick={() => router.push('/?tab=domains')}>
+            返回域名列表
+          </Button>
         </div>
       </div>
     )
@@ -126,26 +129,11 @@ export default function EditDomainPage({ params }: { params: Promise<{ id: strin
   if (!domain) {
     return (
       <div className="p-10">
-        <div className="mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => {
-              router.back()
-              setTimeout(() => {
-                if (window.location.pathname === `/domains/${domain?.id}/edit`) {
-                  router.push('/?tab=domains')
-                }
-              }, 100)
-            }}
-            className="flex items-center text-sm text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            返回
-          </Button>
-        </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground mb-4">未找到域名信息</p>
-          <Button onClick={() => router.push('/?tab=domains')}>返回域名列表</Button>
+          <Button onClick={() => router.push('/?tab=domains')}>
+            返回域名列表
+          </Button>
         </div>
       </div>
     )
@@ -186,7 +174,7 @@ export default function EditDomainPage({ params }: { params: Promise<{ id: strin
                 id="port"
                 type="number"
                 value={port}
-                onChange={(e) => setPort(e.target.value.replace(/\D/g, ''))}
+                onChange={e => setPort(e.target.value.replace(/\D/g, ''))}
                 placeholder="443"
               />
             </div>
@@ -195,22 +183,14 @@ export default function EditDomainPage({ params }: { params: Promise<{ id: strin
               <Textarea
                 id="notes"
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={e => setNotes(e.target.value)}
                 placeholder="添加关于此域名的备注信息"
               />
             </div>
 
-            {error && (
-              <div className="text-sm text-red-500">
-                {error}
-              </div>
-            )}
+            {error && <div className="text-sm text-red-500">{error}</div>}
 
-            {success && (
-              <div className="text-sm text-green-500">
-                {success}
-              </div>
-            )}
+            {success && <div className="text-sm text-green-500">{success}</div>}
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button
@@ -232,4 +212,4 @@ export default function EditDomainPage({ params }: { params: Promise<{ id: strin
       </div>
     </div>
   )
-} 
+}
