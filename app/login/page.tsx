@@ -25,7 +25,7 @@ export default function LoginPage() {
       console.log('Request result:', result)
 
       if (result.success) {
-        toast.success('Event has been created', { description: result.message })
+        toast.success('发送成功', { description: result.message })
         setTimeout(() => {
           router.push(`/verify?email=${encodeURIComponent(email)}`)
         }, 1000)
@@ -33,7 +33,7 @@ export default function LoginPage() {
         setError(result.error || '发送验证码失败，请稍后重试')
         toast.error('发送失败', {
           description: result.error || '发送验证码失败，请稍后重试',
-          duration: 5000
+          duration: 5000,
         })
       }
     } catch (error) {
@@ -41,7 +41,7 @@ export default function LoginPage() {
       setError('发送验证码时发生错误，请稍后重试')
       toast.error('发送失败', {
         description: '发送验证码时发生错误，请稍后重试',
-        duration: 5000
+        duration: 5000,
       })
     } finally {
       setIsLoading(false)
@@ -59,10 +59,7 @@ export default function LoginPage() {
             {process.env.NEXT_PUBLIC_APP_DESCRIPTION}
           </p>
         </div>
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
@@ -79,11 +76,7 @@ export default function LoginPage() {
               required
             />
           </div>
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoading}
-          >
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? '发送中...' : '发送验证码'}
           </Button>
         </form>
