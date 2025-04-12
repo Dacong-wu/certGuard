@@ -33,6 +33,7 @@ function initDb() {
     )
   `)
 
+
   // 域名表
   db.exec(`
     CREATE TABLE IF NOT EXISTS domains (
@@ -40,13 +41,32 @@ function initDb() {
       user_id INTEGER NOT NULL,
       domain TEXT NOT NULL,
       port INTEGER DEFAULT 443,
+  
       last_checked TIMESTAMP,
       expiry_date TIMESTAMP,
       status TEXT,
+      daysLeft INTEGER,
       notes TEXT,
+  
+      cert_serial TEXT,
+      issuer_organization TEXT,
+      issuer_country TEXT,
+      issuer_common_name TEXT,
+      cert_sha1_fingerprint TEXT,
+      cert_sha256_fingerprint TEXT,
+      cert_issue_date TIMESTAMP,
+      cert_expiry_date TIMESTAMP,
+      cert_file TEXT,
+  
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    )
+  
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      UNIQUE(user_id, domain)
+    );
+  `)
+
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_domains_user_domain ON domains(user_id, domain);
   `)
 
   // 通知设置表
