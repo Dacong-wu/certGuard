@@ -14,39 +14,6 @@ export function generateRandomCode(length: number): string {
   return code
 }
 
-// 发送邮件
-export async function sendEmail(to: string, subject: string, html: string) {
-  try {
-    // 在服务器端使用端口，在客户端使用相对路径
-    const port = typeof window === 'undefined' ? process.env.PORT || '3000' : ''
-
-    const response = await fetch(
-      `${port ? `http://localhost:${port}` : ''}/api/send-email`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          to,
-          subject,
-          content: html,
-          isVerificationCode: false
-        })
-      }
-    )
-
-    if (!response.ok) {
-      throw new Error('发送邮件失败')
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error('发送邮件失败:', error)
-    throw error
-  }
-}
-
 // 计算剩余天数
 export function calculateDaysLeft(expiryDate: Date | string): number {
   if (!expiryDate) return 0

@@ -4,8 +4,8 @@ import {
   verifyCode as authVerifyCode,
   generateVerificationCode
 } from '@/app/lib/server-auth'
-import { sendEmail } from '@/lib/utils'
 import db from '@/lib/db'
+import { sendVerificationCode } from '@/lib/email/index'
 
 type VerifyResponse =
   | { success: true; userId: number; email: string }
@@ -34,8 +34,8 @@ export async function requestNewCode(email: string) {
   // 生成新验证码
   const code = await generateVerificationCode(email)
 
-  // 发送验证码邮件
-  await sendEmail(email, '证书监控系统登录验证码', `${code}`)
+  // 重新发送验证码邮件
+  await sendVerificationCode(email, code)
 
   return { success: true }
 }

@@ -1,9 +1,9 @@
 'use server'
 
 import { generateVerificationCode } from '@/app/lib/server-auth'
-import { sendEmail } from '@/lib/utils'
 import db from '@/lib/db'
 import { cookies } from 'next/headers'
+import { sendVerificationCode } from '@/lib/email/index'
 
 export async function requestVerificationCode(email: string) {
   // 验证邮箱是否在允许列表中
@@ -24,7 +24,7 @@ export async function requestVerificationCode(email: string) {
     const code = await generateVerificationCode(email)
 
     // 发送验证码邮件
-    await sendEmail(email, '证书监控系统登录验证码', `${code}`)
+    await sendVerificationCode(email, code)
 
     return {
       success: true,
