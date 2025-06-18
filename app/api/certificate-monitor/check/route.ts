@@ -5,13 +5,12 @@ import { sendBatchCertificateExpiryEmail } from '@/lib/email'
 
 export async function GET(request: NextRequest) {
   try {
-    // 可选：检查授权（当通过cron触发时）
     const authHeader = request.headers.get('authorization')
     const apiKey = process.env.CRON_API_KEY
 
-    // 如果设置了API密钥但请求没有提供正确的密钥，则拒绝访问
-    // 这样允许手动触发（无密钥）和cron触发（有密钥）两种方式
-    if (apiKey && authHeader !== `Bearer ${apiKey}` && authHeader !== null) {
+    // 只允许手动通过密钥访问
+
+    if (!authHeader || authHeader !== `Bearer ${apiKey}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
