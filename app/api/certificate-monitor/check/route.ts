@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import db from '@/lib/db'
 import { sendBatchCertificateExpiryEmail } from '@/lib/email'
+import { checkCertificate } from '@/app/domains/actions'
 
 export async function GET(request: NextRequest) {
   try {
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
 
       // 获取用户的所有域名
       const domainsStmt = db.prepare(`
-        SELECT id, domain, cert_expiry_date 
+        SELECT id, domain, cert_expiry_date, port
         FROM domains 
         WHERE user_id = ?
       `)
@@ -61,10 +62,32 @@ export async function GET(request: NextRequest) {
         id: number
         domain: string
         cert_expiry_date: string
+        port: number
+      }[]
+
+      // 新增：执行证书检查
+      for (const domain of domains) {
+        const certExpiry = await checkCertificate(domain.domain, domain.port)
+        if (
+          certExpiry &&
+          certExpiry.expiryDate.toISOString() !== domain.cert_expiry_date
+        ) {
+          const updateCertStmt = db.prepare(`
+            UPDATE domains SET cert_expiry_date = ? WHERE id = ?
+          `)
+          updateCertStmt.run(certExpiry.expiryDate.toISOString(), domain.id)
+        }
+      }
+
+      // 再次查询已更新的 cert_expiry_date
+      const updatedDomains = domainsStmt.all(user.id) as {
+        id: number
+        domain: string
+        cert_expiry_date: string
       }[]
 
       // 筛选需要警告的域名
-      const domainsToNotify = domains.filter(domain => {
+      const domainsToNotify = updatedDomains.filter(domain => {
         if (!domain.cert_expiry_date) return false
 
         const expiryDate = new Date(domain.cert_expiry_date)

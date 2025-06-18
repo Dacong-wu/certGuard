@@ -119,7 +119,7 @@ function initDatabase() {
 initDatabase()
 
 // 检查证书过期时间
-async function checkCertificate(
+export async function checkCertificate(
   domain: string,
   port: number
 ): Promise<CertificateInfo | null> {
