@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { sendCertificateExpiryEmail } from '@/lib/email'
+import { sendCertificateExpiryEmail } from '@/lib/email/index'
 
 export async function POST(request: Request) {
   try {
@@ -37,8 +37,8 @@ export async function POST(request: Request) {
     if (!sendResult.success) {
       console.error('发送测试邮件失败:', sendResult.error)
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: sendResult.error || '发送测试邮件失败',
           details: sendResult.error
         },
@@ -54,12 +54,12 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('发送测试邮件失败:', error)
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: '发送测试邮件失败',
         details: error instanceof Error ? error.message : String(error)
       },
       { status: 500 }
     )
   }
-} 
+}

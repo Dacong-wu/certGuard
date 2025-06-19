@@ -172,7 +172,9 @@ export function DomainTable({
       )}
 
       {success && (
-        <div className="bg-green-50 text-green-700 p-3 rounded-md">{success}</div>
+        <div className="bg-green-50 text-green-700 p-3 rounded-md">
+          {success}
+        </div>
       )}
 
       <div className="rounded-md border">

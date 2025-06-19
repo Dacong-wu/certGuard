@@ -1,21 +1,27 @@
-"use server"
+'use server'
 
-import { verifyCode as authVerifyCode, generateVerificationCode } from "@/app/lib/server-auth"
-import { sendEmail } from "@/lib/utils"
-import db from "@/lib/db"
+import {
+  verifyCode as authVerifyCode,
+  generateVerificationCode
+} from '@/app/lib/server-auth'
+import db from '@/lib/db'
+import { sendVerificationCode } from '@/lib/email/index'
 
-interface VerifyResponse {
-  success: boolean
-  userId?: number
-  email?: string
-}
+type VerifyResponse =
+  | { success: true; userId: number; email: string }
+  | { success: false }
 
-export async function verifyCode(email: string, code: string): Promise<VerifyResponse> {
+export async function verifyCode(
+  email: string,
+  code: string
+): Promise<VerifyResponse> {
   const isValid = await authVerifyCode(email, code)
 
   if (isValid) {
     // 从数据库获取用户信息
-    const user = db.prepare("SELECT id, email FROM users WHERE email = ?").get(email)
+    const user = db
+      .prepare('SELECT id, email FROM users WHERE email = ?')
+      .get(email) as { id: number; email: string } | undefined
     if (user) {
       return { success: true, userId: user.id, email: user.email }
     }
@@ -28,9 +34,8 @@ export async function requestNewCode(email: string) {
   // 生成新验证码
   const code = await generateVerificationCode(email)
 
-  // 发送验证码邮件
-  await sendEmail(email, "证书监控系统登录验证码", `${code}`)
+  // 重新发送验证码邮件
+  await sendVerificationCode(email, code)
 
   return { success: true }
 }
-

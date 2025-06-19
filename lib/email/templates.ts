@@ -1,65 +1,20 @@
-import nodemailer from 'nodemailer'
-
-interface EmailConfig {
-  host: string
-  port: number
-  secure: boolean
-  auth: {
-    user: string
-    pass: string
-  }
-}
-
-// 创建邮件传输器
-const createTransporter = () => {
-  const config: EmailConfig = {
-    host: process.env.SMTP_HOST || 'smtp.example.com',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USER || '',
-      pass: process.env.SMTP_PASS || '',
-    },
-  }
-
-  console.log('SMTP 配置:', {
-    host: config.host,
-    port: config.port,
-    secure: config.secure,
-    user: config.auth.user,
-    // 不打印密码
-  })
-
-  return nodemailer.createTransport(config)
-}
-
-// 发送证书过期通知邮件
-export async function sendCertificateExpiryEmail(
-  to: string,
+/**
+ * 生成单个证书过期通知邮件的HTML内容
+ */
+export function createCertificateExpiryEmailTemplate(
   domain: string,
   daysLeft: number,
   expiryDate: string
-) {
-  const settings = await getNotificationSettingsByEmail(to)
-  if (!settings || !settings.email_enabled) {
-    console.log('邮件通知未启用，跳过发送')
-    return { success: false, error: '邮件通知未启用' }
-  }
-  console.log('开始发送邮件:', { to, domain, daysLeft, expiryDate })
-  
-  const transporter = createTransporter()
+): string {
   const isCritical = daysLeft <= 7
-  const subject = isCritical
-    ? `紧急：${domain} 的 SSL 证书即将过期` 
-    : `警告：${domain} 的 SSL 证书即将过期`
 
-  const html = `
+  return `
     <!DOCTYPE html>
     <html>
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${subject}</title>
+        <title>${isCritical ? `紧急：${domain} 的 SSL 证书即将过期` : `警告：${domain} 的 SSL 证书即将过期`}</title>
         <style>
           body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -120,7 +75,7 @@ export async function sendCertificateExpiryEmail(
       <body>
         <div class="container">
           <div class="content">
-            <h1 class="title">${subject}</h1>
+            <h1 class="title">${isCritical ? `紧急：${domain} 的 SSL 证书即将过期` : `警告：${domain} 的 SSL 证书即将过期`}</h1>
             
             <p>您好，</p>
             <p>我们检测到您监控的域名 <span class="domain">${domain}</span> 的 SSL 证书将在 <span class="days">${daysLeft}</span> 天后过期。</p>
@@ -136,53 +91,29 @@ export async function sendCertificateExpiryEmail(
       </body>
     </html>
   `
-
-  try {
-    console.log('准备发送邮件...')
-    const info = await transporter.sendMail({
-      from: process.env.SMTP_FROM || 'noreply@example.com',
-      to,
-      subject,
-      html,
-    })
-    console.log('邮件发送成功:', info.messageId)
-    return { success: true }
-  } catch (error) {
-    console.error('发送邮件失败:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : '发送邮件失败' 
-    }
-  }
 }
 
-// 发送批量证书过期通知邮件
-export async function sendBatchCertificateExpiryEmail(
-  to: string,
+/**
+ * 生成批量证书过期通知邮件的HTML内容
+ */
+export function createBatchCertificateExpiryEmailTemplate(
   domains: Array<{
     domain: string
     daysLeft: number
     expiryDate: string
   }>
-) {
-  console.log('开始发送批量邮件:', { to, domains })
-  
+): string {
   const criticalDomains = domains.filter(d => d.daysLeft <= 7)
   const warningDomains = domains.filter(d => d.daysLeft > 7 && d.daysLeft <= 30)
   const hasCritical = criticalDomains.length > 0
-
-  const transporter = createTransporter()
-  const subject = hasCritical
-    ? `紧急：多个域名的 SSL 证书即将过期`
-    : `警告：多个域名的 SSL 证书即将过期`
-
-  const html = `
+  
+  return `
     <!DOCTYPE html>
     <html>
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${subject}</title>
+        <title>${hasCritical ? '紧急：多个域名的 SSL 证书即将过期' : '警告：多个域名的 SSL 证书即将过期'}</title>
         <style>
           body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -255,7 +186,7 @@ export async function sendBatchCertificateExpiryEmail(
       <body>
         <div class="container">
           <div class="content">
-            <h1 class="title">${subject}</h1>
+            <h1 class="title">${hasCritical ? '紧急：多个域名的 SSL 证书即将过期' : '警告：多个域名的 SSL 证书即将过期'}</h1>
             
             <p>您好，</p>
             <p>我们检测到您监控的多个域名的 SSL 证书即将过期：</p>
@@ -299,22 +230,29 @@ export async function sendBatchCertificateExpiryEmail(
       </body>
     </html>
   `
+}
 
-  try {
-    console.log('准备发送批量邮件...')
-    const info = await transporter.sendMail({
-      from: process.env.SMTP_FROM || 'noreply@example.com',
-      to,
-      subject,
-      html,
-    })
-    console.log('批量邮件发送成功:', info.messageId)
-    return { success: true }
-  } catch (error) {
-    console.error('发送批量邮件失败:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : '发送批量邮件失败' 
-    }
-  }
+/**
+ * 生成验证码邮件的HTML内容
+ */
+export function createVerificationCodeEmailTemplate(code: string): string {
+  return `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h1 style="color: #24292e; margin: 0;">证书监控系统</h1>
+      </div>
+      
+      <div style="background-color: #f6f8fa; border-radius: 6px; padding: 16px; text-align: center; margin: 24px 0;">
+        <div style="font-size: 32px; font-weight: 600; letter-spacing: 8px; color: #24292e; line-height: 1.2;">
+          ${code.trim()}
+        </div>
+      </div>
+      
+      <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e1e4e8; font-size: 12px; color: #6a737d; text-align: center;">
+        <p>此验证码将在 5 分钟内有效，请尽快完成验证。</p>
+        <p>此邮件由证书监控系统自动发送，请勿回复。</p>
+        <p>如果您没有请求此验证码，请忽略此邮件。</p>
+      </div>
+    </div>
+  `
 }
