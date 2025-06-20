@@ -78,8 +78,3 @@ export async function login(email: string, password: string) {
     }
   }
 }
-
-export async function logout(userId: string) {
-  const cookieStore = await cookies()
-  cookieStore.delete(userId)
-}

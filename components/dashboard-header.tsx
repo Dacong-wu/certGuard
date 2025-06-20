@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { logout } from '@/app/login/actions'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -101,11 +100,10 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     reader.readAsText(file)
   }
 
-  const handleLogout = async () => {
-    await logout(String(user.id)) // 清除服务端 cookies
+  const handleLogout = () => {
     localStorage.removeItem('userId') // 清除客户端缓存
     localStorage.removeItem('email')
-    router.push('/login') // 重定向到登录页
+    router.push('/loginout') // 重定向到登录页
   }
 
   return (
