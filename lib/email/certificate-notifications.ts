@@ -65,12 +65,6 @@ export async function sendBatchCertificateExpiryEmail(
     expiryDate: string
   }>
 ) {
-  // 检查是否启用了邮件通知
-  if (!(await isEmailNotificationEnabled())) {
-    console.log('邮件通知未启用，跳过发送')
-    return { success: false, error: '邮件通知未启用' }
-  }
-
   console.log('开始发送批量邮件:', { to, domains })
 
   const criticalDomains = domains.filter(d => d.daysLeft <= 7)

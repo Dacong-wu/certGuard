@@ -61,23 +61,29 @@ function initDatabase() {
     db.exec(`
       CREATE TABLE domains (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        domain TEXT NOT NULL,
-        port INTEGER NOT NULL DEFAULT 443,
-        last_checked TEXT NOT NULL,
-        expiry_date TEXT NOT NULL,
-        status TEXT NOT NULL,
-        notes TEXT,
-        cert_serial TEXT,
-        cert_sha1_fingerprint TEXT,
-        cert_sha256_fingerprint TEXT,
-        cert_issue_date TEXT,
-        cert_expiry_date TEXT,
-        cert_file TEXT,
-        issuer_organization TEXT,
-        issuer_country TEXT,
-        issuer_common_name TEXT,
-        FOREIGN KEY (user_id) REFERENCES users(id)
+      user_id INTEGER NOT NULL,
+      domain TEXT NOT NULL,
+      port INTEGER DEFAULT 443,
+  
+      last_checked TIMESTAMP,
+      status TEXT,
+      daysLeft INTEGER,
+      notes TEXT,
+  
+      cert_serial TEXT,
+      issuer_organization TEXT,
+      issuer_country TEXT,
+      issuer_common_name TEXT,
+      cert_sha1_fingerprint TEXT,
+      cert_sha256_fingerprint TEXT,
+      cert_issue_date TIMESTAMP,
+      cert_expiry_date TIMESTAMP,
+      cert_file TEXT,
+  
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      UNIQUE(user_id, domain)
       )
     `)
     console.log('数据库表 domains 已创建')
@@ -254,7 +260,6 @@ export async function addDomain(
       domain,
       port,
       new Date().toISOString(),
-      certInfo.expiryDate.toISOString(),
       status,
       notes,
       certInfo.cert.serial,
@@ -271,12 +276,12 @@ export async function addDomain(
     // 添加域名
     const stmt = db.prepare(`
       INSERT INTO domains (
-        user_id, domain, port, last_checked, expiry_date, status, notes,
+        user_id, domain, port, last_checked, status, notes,
         cert_serial, cert_sha1_fingerprint, cert_sha256_fingerprint,
         cert_issue_date, cert_expiry_date, cert_file,
         issuer_organization, issuer_country, issuer_common_name
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
 
     const result = stmt.run(...values)
@@ -331,7 +336,7 @@ export async function addDomainsBulk(
 
       db.prepare(
         `
-        INSERT INTO domains (user_id, domain, port, last_checked, expiry_date, status)
+        INSERT INTO domains (user_id, domain, port, last_checked, cert_expiry_date, status)
         VALUES (?, ?, ?, ?, ?, ?)
       `
       ).run(
@@ -391,10 +396,10 @@ export async function getDomainById(id: number): Promise<GetDomainByIdResult> {
       success: true,
       domain: {
         ...domain,
-        daysLeft: calculateDaysLeft(domain.expiry_date),
+        daysLeft: calculateDaysLeft(domain.cert_expiry_date),
         status:
           domain.status ||
-          getStatusFromDaysLeft(calculateDaysLeft(domain.expiry_date))
+          getStatusFromDaysLeft(calculateDaysLeft(domain.cert_expiry_date))
       }
     }
   } catch (error) {
@@ -463,7 +468,6 @@ const domainFieldMap: Record<string, keyof DomainInfo> = {
   域名: 'domain',
   端口: 'port',
   状态: 'status',
-  过期时间: 'expiry_date',
   备注: 'notes',
   最后检查时间: 'last_checked',
   证书序列号: 'cert_serial',
@@ -483,7 +487,7 @@ export async function exportDomains(userId: number) {
       .prepare(
         `
         SELECT 
-          domain, port, status, expiry_date, notes, last_checked,
+          domain, port, status, notes, last_checked,
           cert_serial, cert_sha1_fingerprint, cert_sha256_fingerprint,
           cert_issue_date, cert_expiry_date,
           issuer_organization, issuer_country, issuer_common_name
@@ -565,7 +569,7 @@ export async function importDomains(userId: number, csvData: string) {
           db.prepare(
             `
             UPDATE domains SET
-              status = ?, expiry_date = ?, notes = ?, last_checked = ?,
+              status = ?, notes = ?, last_checked = ?,
               cert_serial = ?, cert_sha1_fingerprint = ?, cert_sha256_fingerprint = ?,
               cert_issue_date = ?, cert_expiry_date = ?,
               issuer_organization = ?, issuer_country = ?, issuer_common_name = ?
@@ -573,7 +577,6 @@ export async function importDomains(userId: number, csvData: string) {
           `
           ).run(
             domain.status,
-            domain.expiry_date,
             domain.notes,
             domain.last_checked,
             domain.cert_serial,
@@ -590,7 +593,7 @@ export async function importDomains(userId: number, csvData: string) {
           db.prepare(
             `
             INSERT INTO domains (
-              user_id, domain, port, status, expiry_date, notes,
+              user_id, domain, port, status, notes,
               last_checked, cert_serial, cert_sha1_fingerprint,
               cert_sha256_fingerprint, cert_issue_date, cert_expiry_date,
               issuer_organization, issuer_country, issuer_common_name
@@ -601,7 +604,6 @@ export async function importDomains(userId: number, csvData: string) {
             domain.domain,
             domain.port,
             domain.status,
-            domain.expiry_date,
             domain.notes,
             domain.last_checked,
             domain.cert_serial,
@@ -766,13 +768,13 @@ export async function getDomains(userId: number): Promise<GetDomainsResult> {
             WHEN status = 'warning' THEN 2 
             ELSE 3 
           END, 
-          expiry_date ASC
+          cert_expiry_date ASC
       `
       )
       .all(userId) as Omit<DomainInfo, 'daysLeft'>[] // 明确断言类型，但排除 `daysLeft`
 
     const result: DomainInfo[] = domains.map(domain => {
-      const daysLeft = calculateDaysLeft(domain.expiry_date)
+      const daysLeft = calculateDaysLeft(domain.cert_expiry_date)
       return {
         ...domain,
         daysLeft,

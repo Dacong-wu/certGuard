@@ -73,9 +73,13 @@ export async function GET(request: NextRequest) {
           certExpiry.expiryDate.toISOString() !== domain.cert_expiry_date
         ) {
           const updateCertStmt = db.prepare(`
-            UPDATE domains SET cert_expiry_date = ? WHERE id = ?
+            UPDATE domains SET cert_expiry_date = ?, last_checked = ? WHERE id = ?
           `)
-          updateCertStmt.run(certExpiry.expiryDate.toISOString(), domain.id)
+          updateCertStmt.run(
+            certExpiry.expiryDate.toISOString(),
+            new Date().toISOString(),
+            domain.id
+          )
         }
       }
 
@@ -135,6 +139,9 @@ export async function GET(request: NextRequest) {
       })
 
       // 发送批量通知邮件
+      console.log(
+        `Sending email to ${user.email} for ${notificationData.length} domains`
+      )
       const emailResult = await sendBatchCertificateExpiryEmail(
         user.email,
         notificationData

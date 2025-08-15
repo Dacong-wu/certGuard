@@ -4,7 +4,6 @@ export type DomainInfo = {
   domain: string
   port: number
   last_checked: string
-  expiry_date: string
   status: string
   daysLeft: number
   notes: string
@@ -15,6 +14,6 @@ export type DomainInfo = {
   cert_sha1_fingerprint?: string
   cert_sha256_fingerprint?: string
   cert_issue_date?: string
-  cert_expiry_date?: string
+  cert_expiry_date: string
   cert_file?: string
 }

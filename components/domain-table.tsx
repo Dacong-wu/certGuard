@@ -48,9 +48,9 @@ interface Domain {
   id: number
   domain: string
   port: number
-  expiry_date: string
   status: string
   daysLeft: number
+  cert_expiry_date: string
   notes?: string
 }
 
@@ -208,7 +208,7 @@ export function DomainTable({
                     {getStatusBadge(domain.status, domain.daysLeft)}
                   </TableCell>
                   <TableCell>
-                    {new Date(domain.expiry_date).toLocaleDateString()}
+                    {new Date(domain.cert_expiry_date).toLocaleDateString()}
                   </TableCell>
                   {showAll && <TableCell>{domain.notes || '-'}</TableCell>}
                   <TableCell className="text-right">

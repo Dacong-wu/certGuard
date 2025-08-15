@@ -86,11 +86,9 @@ npm run dev
 1. 访问 `http://localhost:3000` 进入系统
 2. 使用配置的邮箱登录系统
 3. 添加需要监控的域名
-4. 系统会自动监控证书状态并发送提醒
+4. 由于 Nextjs 限制，定时器推荐通过访问 api 来实现（/api/certificate-monitor/check）
 
-## 开发计划
 
-- [ ] 添加更多通知渠道
 
 ## 贡献指南
 

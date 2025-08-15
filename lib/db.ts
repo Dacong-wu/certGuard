@@ -33,7 +33,6 @@ function initDb() {
     )
   `)
 
-
   // 域名表
   db.exec(`
     CREATE TABLE IF NOT EXISTS domains (
@@ -43,7 +42,6 @@ function initDb() {
       port INTEGER DEFAULT 443,
   
       last_checked TIMESTAMP,
-      expiry_date TIMESTAMP,
       status TEXT,
       daysLeft INTEGER,
       notes TEXT,
